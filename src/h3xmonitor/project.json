@@ -1,0 +1,33 @@
+{
+  "title": "h3xmonitor",
+  "description": "A very basic server monitoring application",
+  "version": "1.0.0-*",
+
+  "buildOptions": {
+    "debugType": "portable",
+    "emitEntryPoint": true
+  },
+
+  "dependencies": {
+    "Microsoft.NETCore.App": {
+      "version": "1.0.1"
+    },
+    "Microsoft.PowerShell.NanoServer.NetCore.Library": "1.0.0",
+    "Newtonsoft.Json": "9.0.1",
+    "SSH.NET": "2016.0.0",
+    "System.Linq": "4.1.0",
+    "System.Security.SecureString": "4.0.0-beta-23409"
+  },
+
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": [
+        "dnxcore50"
+      ]
+    }
+  },
+
+  "runtimes": {
+    "win10-x64": {}
+  }
+}
