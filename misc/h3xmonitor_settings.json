@@ -1,0 +1,29 @@
+{
+  "servers": [
+    {
+      "skip": false,
+      "hostnameOrIP": "coolwindowsserver",
+      "friendlyName": "Some Windows server",
+      "username": "admin",
+      "password": "windowsiscool",
+      "os": 0,
+      "diskControllers": 1,
+      "reference": {
+        "category": "Windows servers",
+		"hasRDP": true
+      }
+    },
+    {
+      "skip": false,
+      "hostnameOrIP": "192.168.1.10",
+      "friendlyName": "Some ESXi server",
+      "username": "root",
+      "password": "esxiiscool",
+      "os": 2,
+      "diskControllers": 2,
+      "reference": {
+        "category": "ESXi servers"
+      }
+    }
+  ]
+}
