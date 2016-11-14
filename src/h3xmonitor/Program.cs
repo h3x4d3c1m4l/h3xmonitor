@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Management.Automation;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -112,6 +113,11 @@ namespace h3xmonitor
                     if (pingResult.Status == IPStatus.Success)
                         status.Ping = pingResult.RoundtripTime;
 
+                    // services test
+                    List<ServiceStatus> services = null;
+                    if (s.TCPServices != null)
+                        services = GetServiceStatusses(s.HostnameOrIP, s.TCPServices);
+
                     // try to retrieve the server IP
                     try
                     {
@@ -128,6 +134,7 @@ namespace h3xmonitor
                     status.FriendlyName = s.FriendlyName;
                     status.Reference = s.Reference;
                     status.OS = s.OS;
+                    status.Services = services;
                     statusList.Add(status);
 
                     Console.Out.WriteLine("Server: " + s.FriendlyName + " (done)");
@@ -141,6 +148,37 @@ namespace h3xmonitor
                 Date = DateTime.Now
             };
             File.WriteAllText(Result, JsonConvert.SerializeObject(resultaat, Formatting.Indented));
+        }
+
+        /// <summary>
+        /// Check host services.
+        /// </summary>
+        /// <param name="pHost"></param>
+        /// <param name="pServices"></param>
+        /// <returns></returns>
+        private static List<ServiceStatus> GetServiceStatusses(string pHost, List<ServiceTest> pServices)
+        {
+            var statusses = new List<ServiceStatus>();
+            foreach (var s in pServices)
+            {                
+                var status = new ServiceStatus { Port = s.Port };
+                statusses.Add(status);
+
+                // now really check
+                using (TcpClient tcpClient = new TcpClient())
+                try
+                {
+                    var connect = tcpClient.ConnectAsync(pHost, s.Port);
+                    connect.Wait();
+                    status.IsOpen = true; // succeeded
+                }
+                catch (Exception)
+                {
+                    // failed, but no problem
+                }
+            }
+
+            return statusses;
         }
     }
 }
