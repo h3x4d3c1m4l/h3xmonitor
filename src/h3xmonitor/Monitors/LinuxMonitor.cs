@@ -96,7 +96,7 @@ namespace h3xmonitor.Monitors
                         {
                             // get disk info
                             var diskInfo = getDiskInfo.Execute();
-                            if (diskInfo.Contains("SMART support is: Unavailable") || diskInfo.Contains("device lacks SMART capability"))
+                            if (SmartmontoolsTools.DiskIgnoreStrings.Any(x => diskInfo.Contains(x)))
                                 continue; // no SMART support, so skip
 
                             // parse disk info

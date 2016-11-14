@@ -36,7 +36,10 @@ namespace h3xmonitor.Monitors
         {
             const string Namespace = @"root\cimv2";
             const string OSQuery = "SELECT Caption, CSName FROM Win32_OperatingSystem";
-            const string DiskspaceQuery = "SELECT VolumeName, Name, Size, FreeSpace FROM Win32_LogicalDisk WHERE DriveType = 3 AND FileSystem != 'FTPUSE'";
+            const string DiskspaceQuery = "SELECT VolumeName, Name, Size, FreeSpace " +
+                                          "FROM Win32_LogicalDisk " +
+                                          "WHERE DriveType = 3 AND FileSystem != 'FTPUSE' " +
+                                          "AND FreeSpace IS NOT NULL AND Size IS NOT NULL";
 
             // create Credentials
             var securepassword = new SecureString();
@@ -80,7 +83,15 @@ namespace h3xmonitor.Monitors
                 }
 
                 // harddisk status
-                var disks = GetDiskStatus(_server.HostnameOrIP, _server.Username, securepassword);
+                List<HarddiskStatus> disks = null;
+                try
+                {
+                    disks = GetDiskStatus(_server.HostnameOrIP, _server.Username, securepassword);
+                }
+                catch (Exception ex)
+                {
+                    // TODO: log this
+                }
 
                 var result = new ServerStatus
                 {
@@ -132,7 +143,7 @@ namespace h3xmonitor.Monitors
                     ps.Commands.Clear();
 
                     // check if device supports SMART
-                    if (diskOutput.Any(x => ((string)x.BaseObject).Contains("SMART support is: Unavailable")))
+                    if (SmartmontoolsTools.DiskIgnoreStrings.Any(x => diskOutput.Any(y => ((string)y.BaseObject).Contains(x))))
                         continue; // skip, it's probably an optical drive
 
                     var diskName = (string) diskOutput.First(x => ((string) x.BaseObject).StartsWith("Device Model:")).BaseObject;
