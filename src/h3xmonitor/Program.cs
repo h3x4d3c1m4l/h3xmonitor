@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using h3xmonitor.Monitors;
@@ -79,6 +80,7 @@ namespace h3xmonitor
                 ServerStatus status = null;
                 try
                 {
+                    // platform specific monitoring features
                     switch (s.OS)
                     {
                         case ServerOS.ESXi:
@@ -104,6 +106,12 @@ namespace h3xmonitor
                 }
                 finally
                 {
+                    // ping test
+                    var pingSender = new Ping();
+                    var pingResult = pingSender.SendPingAsync(s.HostnameOrIP, 1000).Result;
+                    if (pingResult.Status == IPStatus.Success)
+                        status.Ping = pingResult.RoundtripTime;
+
                     // try to retrieve the server IP
                     try
                     {

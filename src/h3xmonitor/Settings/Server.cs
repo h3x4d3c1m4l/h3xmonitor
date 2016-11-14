@@ -1,4 +1,5 @@
-﻿using h3xmonitor.Status;
+﻿using System.Collections.Generic;
+using h3xmonitor.Status;
 using Newtonsoft.Json;
 
 namespace h3xmonitor.Settings
@@ -49,6 +50,12 @@ namespace h3xmonitor.Settings
         /// </summary>
         [JsonProperty("diskControllers")]
         public DiskControllers DiskControllers { get; set; }
+
+        /// <summary>
+        /// TCP based services that shall be tested for availability.
+        /// </summary>
+        [JsonProperty("tcpServices")]
+        public List<ServiceTest> TCPServices { get; set; }
 
         /// <summary>
         /// Object that will be copied to the output.

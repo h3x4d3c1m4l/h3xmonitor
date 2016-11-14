@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using Newtonsoft.Json;
 
 namespace h3xmonitor.Status
@@ -70,5 +71,11 @@ namespace h3xmonitor.Status
         /// </summary>
         [JsonProperty("reference")]
         public object Reference { get; set; }
+
+        /// <summary>
+        /// Round trip time.
+        /// </summary>
+        [JsonProperty("ping")]
+        public double? Ping { get; set; }
     }
 }
