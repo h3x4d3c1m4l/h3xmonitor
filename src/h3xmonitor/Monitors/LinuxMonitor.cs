@@ -66,7 +66,7 @@ namespace h3xmonitor.Monitors
 
                 // disk space check
                 var filesystems = new List<FilesystemStatus>();
-                using (var getFilesystems = client.CreateCommand("df --block-size 1"))
+                using (var getFilesystems = client.CreateCommand("df --block-size 1")) // as bytes
                 {
                     var filesystemInfo = getFilesystems.Execute();
                     foreach (var r in filesystemInfo.Split('\n').Where(x => x.StartsWith("/dev/") && !x.StartsWith("/dev/shm "))) // alleen /dev/-regels doen er toe
@@ -83,10 +83,40 @@ namespace h3xmonitor.Monitors
                     }
                 }
 
+                // smartctl
+                var disks = new List<HarddiskStatus>();
+                using (var getFilesystems = client.CreateCommand($"echo {_server.Password} | sudo -S smartctl --scan")) // as bytes
+                {
+                    var filesystemsOutput = getFilesystems.Execute().Trim().Split('\n');
+                    foreach (var d in filesystemsOutput)
+                    {
+                        // iterate through detected disks
+                        var diskAddress = d.Split(' ')[0];
+                        using (var getDiskInfo = client.CreateCommand($"echo {_server.Password} | sudo -S smartctl -a {diskAddress}"))
+                        {
+                            // get disk info
+                            var diskInfo = getDiskInfo.Execute();
+                            if (diskInfo.Contains("SMART support is: Unavailable") || diskInfo.Contains("device lacks SMART capability"))
+                                continue; // no SMART support, so skip
+
+                            // parse disk info
+                            var diskInfoSplit = diskInfo.Split('\n');
+                            var diskModel = diskInfoSplit.First(x => x.Contains("Device Model:")).Substring(13).Trim();
+                            disks.Add(new HarddiskStatus
+                            {
+                                Address = diskAddress,
+                                Model = diskModel,
+                                IsHealthy = true,
+                                SMARTData = diskInfo
+                            });
+                        }
+                    }
+                }
+
                 return new ServerStatus
                 {
                     Hostname = hostname,
-                    Harddisks = null,
+                    Harddisks = disks,
                     OSVersion = osVersie.Trim(),
                     Filesystems = filesystems
                 };
