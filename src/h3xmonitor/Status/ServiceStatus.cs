@@ -15,5 +15,11 @@ namespace h3xmonitor.Status
         /// </summary>
         [JsonProperty("isOpen")]
         public bool IsOpen { get; set; }
+
+        /// <summary>
+        /// Object that is copied from the output.
+        /// </summary>
+        [JsonProperty("reference")]
+        public object Reference { get; set; }
     }
 }

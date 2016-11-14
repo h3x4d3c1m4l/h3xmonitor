@@ -19,5 +19,11 @@ namespace h3xmonitor.Settings
         /// </summary>
         [JsonProperty("test")]
         public TCPTests Test { get; set; }
+
+        /// <summary>
+        /// Object that will be copied to the output.
+        /// </summary>
+        [JsonProperty("reference")]
+        public object Reference { get; set; }
     }
 }

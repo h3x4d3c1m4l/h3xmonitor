@@ -161,7 +161,7 @@ namespace h3xmonitor
             var statusses = new List<ServiceStatus>();
             foreach (var s in pServices)
             {                
-                var status = new ServiceStatus { Port = s.Port };
+                var status = new ServiceStatus { Port = s.Port, Reference = s.Reference };
                 statusses.Add(status);
 
                 // now really check
