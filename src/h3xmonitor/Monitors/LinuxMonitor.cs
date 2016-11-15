@@ -84,33 +84,47 @@ namespace h3xmonitor.Monitors
                 }
 
                 // smartctl
-                var disks = new List<HarddiskStatus>();
-                using (var getFilesystems = client.CreateCommand($"echo {_server.Password} | sudo -S smartctl --scan")) // as bytes
+                List<HarddiskStatus> disks = null;
+                try
                 {
-                    var filesystemsOutput = getFilesystems.Execute().Trim().Split('\n');
-                    foreach (var d in filesystemsOutput)
+                    disks = new List<HarddiskStatus>();
+                    using (
+                            var getFilesystems = client.CreateCommand($"echo {_server.Password} | sudo -S smartctl --scan"))
+                        // as bytes
                     {
-                        // iterate through detected disks
-                        var diskAddress = d.Split(' ')[0];
-                        using (var getDiskInfo = client.CreateCommand($"echo {_server.Password} | sudo -S smartctl -a {diskAddress}"))
+                        var filesystemsOutput = getFilesystems.Execute().Trim().Split('\n');
+                        foreach (var d in filesystemsOutput)
                         {
-                            // get disk info
-                            var diskInfo = getDiskInfo.Execute();
-                            if (SmartmontoolsTools.DiskIgnoreStrings.Any(x => diskInfo.Contains(x)))
-                                continue; // no SMART support, so skip
-
-                            // parse disk info
-                            var diskInfoSplit = diskInfo.Split('\n');
-                            var diskModel = diskInfoSplit.First(x => x.Contains("Device Model:")).Substring(13).Trim();
-                            disks.Add(new HarddiskStatus
+                            // iterate through detected disks
+                            var diskAddress = d.Split(' ')[0];
+                            using (
+                                var getDiskInfo =
+                                    client.CreateCommand($"echo {_server.Password} | sudo -S smartctl -a {diskAddress}")
+                            )
                             {
-                                Address = diskAddress,
-                                Model = diskModel,
-                                IsHealthy = true,
-                                SMARTData = diskInfo
-                            });
+                                // get disk info
+                                var diskInfo = getDiskInfo.Execute();
+                                if (SmartmontoolsTools.DiskIgnoreStrings.Any(x => diskInfo.Contains(x)))
+                                    continue; // no SMART support, so skip
+
+                                // parse disk info
+                                var diskInfoSplit = diskInfo.Split('\n');
+                                var diskModel =
+                                    diskInfoSplit.First(x => x.Contains("Device Model:")).Substring(13).Trim();
+                                disks.Add(new HarddiskStatus
+                                {
+                                    Address = diskAddress,
+                                    Model = diskModel,
+                                    IsHealthy = true,
+                                    SMARTData = diskInfo
+                                });
+                            }
                         }
                     }
+                }
+                catch (Exception)
+                {
+                    
                 }
 
                 return new ServerStatus
