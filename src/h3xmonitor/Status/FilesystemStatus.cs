@@ -14,12 +14,12 @@ namespace h3xmonitor.Status
         /// Total amount of bytes.
         /// </summary>
         [JsonProperty("totalBytes")]
-        public long TotalBytes { get; set; }
+        public ulong TotalBytes { get; set; }
 
         /// <summary>
         /// Total amount of free bytes.
         /// </summary>
         [JsonProperty("freeBytes")]
-        public long FreeBytes { get; set; }
+        public ulong FreeBytes { get; set; }
     }
 }

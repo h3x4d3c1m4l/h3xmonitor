@@ -8,7 +8,7 @@ namespace h3xmonitor.Status
         /// TCP port number.
         /// </summary>
         [JsonProperty("port")]
-        public int Port { get; set; }
+        public uint Port { get; set; }
 
         /// <summary>
         /// Whether the connection test has succeeded.

@@ -76,8 +76,8 @@ namespace h3xmonitor.Monitors
                         filesystems.Add(new FilesystemStatus
                         {
                             Name = filesystemSplit[5],
-                            TotalBytes = long.Parse(filesystemSplit[1]),
-                            FreeBytes = long.Parse(filesystemSplit[3])
+                            TotalBytes = ulong.Parse(filesystemSplit[1]),
+                            FreeBytes = ulong.Parse(filesystemSplit[3])
                         });
                     }
                 }

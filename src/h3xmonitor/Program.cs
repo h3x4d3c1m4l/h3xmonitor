@@ -168,7 +168,7 @@ namespace h3xmonitor
                 using (TcpClient tcpClient = new TcpClient())
                 try
                 {
-                    var connect = tcpClient.ConnectAsync(pHost, s.Port);
+                    var connect = tcpClient.ConnectAsync(pHost, (int) s.Port);
                     connect.Wait();
                     status.IsOpen = true; // succeeded
                 }

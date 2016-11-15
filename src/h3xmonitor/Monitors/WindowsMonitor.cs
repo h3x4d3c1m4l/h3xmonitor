@@ -74,11 +74,12 @@ namespace h3xmonitor.Monitors
                     if (!string.IsNullOrWhiteSpace(volumeName as string))
                         name += " - " + volumeName;
 
+                    // Size and FreeSpace is a long on some platforms, on others it might be a string
                     filesystems.Add(new FilesystemStatus
                     {
                         Name = name,
-                        TotalBytes = (long)(ulong) totalBytes,
-                        FreeBytes = (long)(ulong) freeBytes
+                        TotalBytes = totalBytes is string ? ulong.Parse((string) totalBytes) : (ulong) totalBytes,
+                        FreeBytes = freeBytes is string ? ulong.Parse((string)freeBytes) : (ulong)freeBytes,
                     });
                 }
 

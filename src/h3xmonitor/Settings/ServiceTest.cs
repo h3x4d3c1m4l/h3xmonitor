@@ -12,7 +12,7 @@ namespace h3xmonitor.Settings
         /// The service's TCP-port.
         /// </summary>
         [JsonProperty("port")]
-        public int Port { get; set; }
+        public uint Port { get; set; }
 
         /// <summary>
         /// The type of test that will be done.

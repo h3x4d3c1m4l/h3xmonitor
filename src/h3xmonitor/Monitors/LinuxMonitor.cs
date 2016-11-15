@@ -72,8 +72,8 @@ namespace h3xmonitor.Monitors
                     foreach (var r in filesystemInfo.Split('\n').Where(x => x.StartsWith("/dev/") && !x.StartsWith("/dev/shm "))) // alleen /dev/-regels doen er toe
                     {
                         var filesystemSplit = r.Split(new[] {" "}, StringSplitOptions.RemoveEmptyEntries);
-                        long freeBytes = long.Parse(filesystemSplit[3]);
-                        long usedBytes = long.Parse(filesystemSplit[2]);
+                        var freeBytes = ulong.Parse(filesystemSplit[3]);
+                        var usedBytes = ulong.Parse(filesystemSplit[2]);
                         filesystems.Add(new FilesystemStatus
                         {
                             Name = filesystemSplit[5],
