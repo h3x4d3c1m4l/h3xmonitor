@@ -58,7 +58,7 @@ namespace h3xmonitor.Monitors
             {
                 // computernaam en OS-versie
                 var osQuery = mySession.QueryInstances(Namespace, "WQL", OSQuery);
-                var osVersie = (string)osQuery.First().CimInstanceProperties["Caption"].Value;
+                var osVersie = ((string)osQuery.First().CimInstanceProperties["Caption"].Value).Trim();
                 var hostname = (string)osQuery.First().CimInstanceProperties["CSName"].Value;
 
                 // partitie ruimtes

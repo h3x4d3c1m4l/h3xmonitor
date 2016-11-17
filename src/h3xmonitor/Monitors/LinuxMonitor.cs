@@ -52,14 +52,14 @@ namespace h3xmonitor.Monitors
                 // hostname, OS version
                 string hostname, osVersie;
                 using (var getHostname = client.CreateCommand("hostname"))
-                using (var getIssue = client.CreateCommand("cat /etc/issue"))
+                using (var getLsbRelease = client.CreateCommand("lsb_release -d -s"))
                 using (var getVersie = client.CreateCommand("uname -r"))
                 {
                     hostname = getHostname.Execute().Trim();
-                    var issue = getIssue.Execute();
+                    var lsbRelease = getLsbRelease.Execute();
 
-                    if (issue.Length > 8)
-                        osVersie = issue.Substring(0, issue.Length - 8) + " (" + getVersie.Execute().Trim() + ")";
+                    if (lsbRelease.Length > 0)
+                        osVersie = lsbRelease.Trim() + " (" + getVersie.Execute().Trim() + ")";
                     else
                         osVersie = "Unknown Linux" + " (" + getVersie.Execute().Trim() + ")";
                 }
