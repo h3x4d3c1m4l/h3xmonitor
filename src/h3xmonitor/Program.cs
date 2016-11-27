@@ -108,10 +108,18 @@ namespace h3xmonitor
                 finally
                 {
                     // ping test
-                    var pingSender = new Ping();
-                    var pingResult = pingSender.SendPingAsync(s.HostnameOrIP, 1000).Result;
-                    if (pingResult.Status == IPStatus.Success)
-                        status.Ping = pingResult.RoundtripTime;
+                    try
+                    {
+                        var pingSender = new Ping();
+                        var pingResult = pingSender.SendPingAsync(s.HostnameOrIP, 1000).Result;
+                        if (pingResult.Status == IPStatus.Success)
+                            status.Ping = pingResult.RoundtripTime;
+                    }
+                    catch (Exception)
+                    {
+                        // failed
+                        status.Ping = null;
+                    }
 
                     // services test
                     List<ServiceStatus> services = null;
