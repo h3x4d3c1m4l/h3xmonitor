@@ -28,10 +28,16 @@ namespace h3xmonitor.Logging
         private static readonly BlockingCollection<Logline> LogList;
 
         /// <summary>
+        /// Logging is running.
+        /// </summary>
+        private static bool _running;
+
+        /// <summary>
         /// Autostarts the logging thread.
         /// </summary>
         static Log()
         {
+            _running = true;
             LogList = new BlockingCollection<Logline>(new ConcurrentQueue<Logline>());
             new Thread(Mainloop) { Name = "Log" }.Start();
         }
@@ -70,6 +76,7 @@ namespace h3xmonitor.Logging
                 // dump to console
                 Console.Error.WriteLine(l.Text);
             }
+            _running = false;
         }
 
         /// <summary>
@@ -80,6 +87,16 @@ namespace h3xmonitor.Logging
         public static void Write(LoglineLevel pLevel, string pText)
         {
             LogList.Add(new Logline { Level = pLevel, Text = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} - {pText}" });
+        }
+
+        /// <summary>
+        /// End logging.
+        /// </summary>
+        public static void StopAndAwaitStopping()
+        {
+            LogList.CompleteAdding();
+            while (_running)
+                Thread.Sleep(1);
         }
     }
 }

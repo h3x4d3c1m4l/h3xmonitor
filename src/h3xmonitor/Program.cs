@@ -82,6 +82,10 @@ namespace h3xmonitor
                 // error during parsing
                 Environment.Exit(1);
             });
+
+            // close application
+            Log.StopAndAwaitStopping();
+            Environment.Exit(0);
         }
 
         /// <summary>
