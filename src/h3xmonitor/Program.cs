@@ -16,12 +16,14 @@
 */
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
@@ -48,7 +50,12 @@ namespace h3xmonitor
             // parse arguments
             Parser.Default.ParseArguments<Options>(args).WithParsed(pOptions =>
             {
-                // succesfully parsed, get JSON stream
+                // succesfully parsed, print header
+                var verInf = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
+                Console.Error.WriteLine($"{verInf.ProductName} {verInf.ProductVersion}\r\n{verInf.LegalCopyright}\r\n");
+
+                //get JSON stream
+                Log.Write(LoglineLevel.Debug, "Reading settings from " + (pOptions.InputFile ?? "stdin"));
                 StreamReader confStrReader = null;
                 var confReader = pOptions.InputFile == null ? new JsonTextReader(Console.In) : new JsonTextReader(confStrReader = File.OpenText(pOptions.InputFile));
 
@@ -58,10 +65,12 @@ namespace h3xmonitor
                 confStrReader?.Dispose();
 
                 // do monitoring
+                Log.Write(LoglineLevel.Debug, "Starting monitoring");
                 var serverStatusses = GetServerStatusses(config.Servers);
                 var result = new Result {Date = DateTime.Now, Servers = serverStatusses};
 
                 // return result
+                Log.Write(LoglineLevel.Debug, "Outputting result");
                 StreamWriter resultStrWriter = null;
                 FileStream resultFileStream = null;
                 var resultWriter = pOptions.OutputFile == null ? new JsonTextWriter(Console.Out) : new JsonTextWriter(resultStrWriter = new StreamWriter(resultFileStream = File.OpenWrite(pOptions.OutputFile)));

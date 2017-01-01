@@ -1,5 +1,5 @@
-{
-  "copyright": "by h3x4d3c1m4l, released under GPL v3 licence",
+﻿{
+  "copyright": "(c) h3x4d3c1m4l, released under GPL v3 licence\r\nhttps://github.com/h3x4d3c1m4l/h3xmonitor",
   "title": "h3xmonitor",
   "description": "A very basic server monitoring application",
   "version": "1.0.1",

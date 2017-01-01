@@ -79,7 +79,7 @@ namespace h3xmonitor.Logging
         /// <param name="pText">Text of the line</param>
         public static void Write(LoglineLevel pLevel, string pText)
         {
-            LogList.Add(new Logline { Level = pLevel, Text = pText });
+            LogList.Add(new Logline { Level = pLevel, Text = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} - {pText}" });
         }
     }
 }
