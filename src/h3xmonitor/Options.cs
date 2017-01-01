@@ -14,32 +14,22 @@
     You should have received a copy of the GNU General Public License
     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
+using CommandLine;
 
-namespace h3xmonitor.Settings
+namespace h3xmonitor
 {
-    public class ServiceTest
+    class Options
     {
-        /// <summary>
-        /// The service's TCP-port.
-        /// </summary>
-        [JsonProperty("port")]
-        public uint Port { get; set; }
+        [Option('i', "input", HelpText = "Input file to be processed (if omitted standard input will be used).")]
+        public string InputFile { get; set; }
 
-        /// <summary>
-        /// The type of test that will be done.
-        /// </summary>
-        [JsonProperty("test")]
-        public TCPTests Test { get; set; }
+        [Option('o', "output", HelpText = "Output file for results (if omitted standard output will be used).")]
+        public string OutputFile { get; set; }
 
-        /// <summary>
-        /// Object that will be copied to the output.
-        /// </summary>
-        [JsonProperty("reference")]
-        public object Reference { get; set; }
+        [Option('v', "verbose", HelpText = "Prints all messages to standard output.")]
+        public bool Verbose { get; set; }
+
+        [Option('s', "checkinputsyntaxonly", HelpText = "Only check if the input file has valid syntax, no real monitoring.")]
+        public bool NoRealMonitoring { get; set; }
     }
 }

@@ -1,4 +1,20 @@
-﻿using System;
+﻿/*
+    This file is part of h3xmonitor.
+
+    h3xmonitor is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    h3xmonitor is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,10 +22,14 @@ using System.Management.Automation;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
+using CommandLine;
+using h3xmonitor.Logging;
 using h3xmonitor.Monitors;
 using h3xmonitor.Settings;
 using h3xmonitor.Status;
+using Microsoft.PowerShell.Commands;
 using Newtonsoft.Json;
 
 namespace h3xmonitor
@@ -20,64 +40,79 @@ namespace h3xmonitor
     public class Program
     {
         /// <summary>
-        /// Settings path.
-        /// </summary>
-        private const string Settings = "h3xmonitor_settings.json";
-
-        /// <summary>
-        /// Result path.
-        /// </summary>
-        private const string Result = "h3xmonitor_result.json";
-
-        /// <summary>
         /// Application entry point.
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args)
         {
-            Console.Out.WriteLine("h3xmonitor");
-            Console.Out.WriteLine("by h3x4d3c1m4l, released under GPL v3 licence\r\n");
-
-            // read settings
-            Settings.Settings settings = null;
-            try
+            // parse arguments
+            Parser.Default.ParseArguments<Options>(args).WithParsed(pOptions =>
             {
-                // try reading the settings file
-                var json = File.ReadAllText(Settings);
-                settings = JsonConvert.DeserializeObject<Settings.Settings>(json);
-            } catch (Exception)
-            {
-                // failed, possible syntax error or missing file
-                Console.Out.WriteLine("\r\nCan't read settings, a sample settingfile will be written to " + Settings);
-                Console.Out.WriteLine("Press any key to continue, or close the window if you do not want this!");
-                Console.In.Read();
+                // succesfully parsed, get JSON stream
+                StreamReader confStrReader = null;
+                var confReader = pOptions.InputFile == null ? new JsonTextReader(Console.In) : new JsonTextReader(confStrReader = File.OpenText(pOptions.InputFile));
 
-                // generate sample settings file
-                var json = JsonConvert.SerializeObject(new Settings.Settings
+                // deserialize from stream
+                var serializer = new JsonSerializer();
+                var config = serializer.Deserialize<Settings.Settings>(confReader);
+                confStrReader?.Dispose();
+
+                // do monitoring
+                var serverStatusses = GetServerStatusses(config.Servers);
+                var result = new Result {Date = DateTime.Now, Servers = serverStatusses};
+
+                // return result
+                StreamWriter resultStrWriter = null;
+                FileStream resultFileStream = null;
+                var resultWriter = pOptions.OutputFile == null ? new JsonTextWriter(Console.Out) : new JsonTextWriter(resultStrWriter = new StreamWriter(resultFileStream = File.OpenWrite(pOptions.OutputFile)));
+                serializer.Serialize(resultWriter, result);
+                resultStrWriter?.Dispose();
+                resultFileStream?.Dispose();
+            }).WithNotParsed(pOptions =>
+            {
+                // error during parsing
+                Environment.Exit(1);
+            });
+        }
+
+        /// <summary>
+        /// Check host services.
+        /// </summary>
+        /// <param name="pHost"></param>
+        /// <param name="pServices"></param>
+        /// <returns></returns>
+        private static List<ServiceStatus> GetServiceStatusses(string pHost, List<ServiceTest> pServices)
+        {
+            var statusses = new List<ServiceStatus>();
+            foreach (var s in pServices)
+            {                
+                var status = new ServiceStatus { Port = s.Port, Reference = s.Reference };
+                statusses.Add(status);
+
+                // now really check
+                using (var tcpClient = new TcpClient())
+                try
                 {
-                    Servers = new List<Server>
-                    {
-                        new Server
-                        {
-                            HostnameOrIP = "server.hostname",
-                            FriendlyName = "Servername",
-                            DiskControllers = DiskControllers.StandardATA,
-                            OS = ServerOS.Windows,
-                            Username = "username",
-                            Password = "passwords"
-                        }
-                    }
-                }, Formatting.Indented);
-                File.WriteAllText(Settings, json);
-                Environment.Exit(0);
+                    var connect = tcpClient.ConnectAsync(pHost, (int) s.Port);
+                    connect.Wait();
+                    status.IsOpen = true; // succeeded
+                }
+                catch (Exception)
+                {
+                    // failed, but no problem
+                }
             }
 
-            // do the monitoring
+            return statusses;
+        }
+
+        private static List<ServerStatus> GetServerStatusses(IEnumerable<Server> configServers)
+        {
             List<ServerStatus> statusList = new List<ServerStatus>();
             //foreach (var s in settings.Servers.Where(x => !x.Skip))
-            Parallel.ForEach(settings.Servers.Where(x => !x.Skip), s =>
+            Parallel.ForEach(configServers.Where(x => !x.Skip), s =>
             {
-                Console.Out.WriteLine("Server: " + s.FriendlyName);
+                Log.Write(LoglineLevel.Info, "Server: " + s.FriendlyName);
                 ServerStatus status = null;
                 try
                 {
@@ -85,13 +120,13 @@ namespace h3xmonitor
                     switch (s.OS)
                     {
                         case ServerOS.ESXi:
-                            status = new ESXiMonitor(s).GetStatus().Result;
+                            status = new ESXiMonitor(s).GetStatusAsync().Result;
                             break;
                         case ServerOS.Linux:
-                            status = new LinuxMonitor(s).GetStatus().Result;
+                            status = new LinuxMonitor(s).GetStatusAsync().Result;
                             break;
                         case ServerOS.Windows:
-                            status = new WindowsMonitor(s).GetStatus().Result;
+                            status = new WindowsMonitor(s).GetStatusAsync().Result;
                             break;
                         default:
                             throw new Exception("Unsupported server type: " + s.OS);
@@ -145,48 +180,11 @@ namespace h3xmonitor
                     status.Services = services;
                     statusList.Add(status);
 
-                    Console.Out.WriteLine("Server: " + s.FriendlyName + " (done)");
+                    Log.Write(LoglineLevel.Debug, "Server: " + s.FriendlyName + " (done)");
                 }
             });
 
-            // create object, serialize to json, write to file
-            var resultaat = new Result
-            {
-                Servers = statusList,
-                Date = DateTime.Now
-            };
-            File.WriteAllText(Result, JsonConvert.SerializeObject(resultaat, Formatting.Indented));
-        }
-
-        /// <summary>
-        /// Check host services.
-        /// </summary>
-        /// <param name="pHost"></param>
-        /// <param name="pServices"></param>
-        /// <returns></returns>
-        private static List<ServiceStatus> GetServiceStatusses(string pHost, List<ServiceTest> pServices)
-        {
-            var statusses = new List<ServiceStatus>();
-            foreach (var s in pServices)
-            {                
-                var status = new ServiceStatus { Port = s.Port, Reference = s.Reference };
-                statusses.Add(status);
-
-                // now really check
-                using (TcpClient tcpClient = new TcpClient())
-                try
-                {
-                    var connect = tcpClient.ConnectAsync(pHost, (int) s.Port);
-                    connect.Wait();
-                    status.IsOpen = true; // succeeded
-                }
-                catch (Exception)
-                {
-                    // failed, but no problem
-                }
-            }
-
-            return statusses;
+            return statusList;
         }
     }
 }

@@ -1,7 +1,8 @@
 {
+  "copyright": "by h3x4d3c1m4l, released under GPL v3 licence",
   "title": "h3xmonitor",
   "description": "A very basic server monitoring application",
-  "version": "1.0.0-*",
+  "version": "1.0.1",
 
   "buildOptions": {
     "debugType": "portable",
@@ -9,12 +10,13 @@
   },
 
   "dependencies": {
+    "CommandLineParser": "2.1.1-beta",
     "Microsoft.NETCore.App": "1.1.0",
     "Microsoft.PowerShell.NanoServer.NetCore.Library": "1.0.0",
     "Newtonsoft.Json": "9.0.1",
     "SSH.NET": "2016.0.0",
     "System.Linq": "4.3.0",
-    "System.Security.SecureString": "4.0.0-beta-23409"
+    "System.Security.SecureString": "4.3.0"
   },
 
   "frameworks": {
