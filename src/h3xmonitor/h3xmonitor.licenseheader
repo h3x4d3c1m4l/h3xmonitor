@@ -1,4 +1,5 @@
-﻿/*
+﻿extensions: .cs
+/*
     This file is part of h3xmonitor.
 
     h3xmonitor is free software: you can redistribute it and/or modify
@@ -14,28 +15,3 @@
     You should have received a copy of the GNU General Public License
     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 */
-using Newtonsoft.Json;
-
-namespace h3xmonitor.Status
-{
-    public class FilesystemStatus
-    {
-        /// <summary>
-        /// Name of the filesystem.
-        /// </summary>
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Total amount of bytes.
-        /// </summary>
-        [JsonProperty("totalBytes")]
-        public ulong TotalBytes { get; set; }
-
-        /// <summary>
-        /// Total amount of free bytes.
-        /// </summary>
-        [JsonProperty("freeBytes")]
-        public ulong FreeBytes { get; set; }
-    }
-}
